@@ -1,47 +1,121 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>My GitHub Page</title>
+    <title>Video to Frames</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
             background: #111;
             color: white;
+            font-family: Arial, sans-serif;
             text-align: center;
-            margin: 0;
-        }
-        header {
-            background: #222;
             padding: 20px;
-            font-size: 24px;
         }
-        .card {
-            background: #333;
-            margin: 40px auto;
-            padding: 20px;
-            width: 300px;
-            border-radius: 10px;
-        }
-        button {
-            padding: 10px 20px;
+        button, input {
+            padding: 10px 15px;
+            margin: 10px;
             background: #00bcd4;
             border: none;
             border-radius: 5px;
             cursor: pointer;
         }
+        canvas {
+            display: none;
+        }
+        .frame {
+            width: 120px;
+            margin: 5px;
+        }
+        #frames {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
     </style>
 </head>
 <body>
 
-<header>
-    My Website
-</header>
+<h1>Video to Frames</h1>
 
-<div class="card">
-    <h2>Hello!</h2>
-    <p>This is my GitHub Pages UI.</p>
-    <button onclick="alert('Button clicked!')">Click me</button>
-</div>
+<input type="file" id="videoInput" accept="video/*">
+<br>
+<button onclick="extractFrames()">Convert to Frames</button>
+<br>
+<button onclick="downloadFrames()">Download Frames</button>
+
+<video id="video" style="display:none;"></video>
+<canvas id="canvas"></canvas>
+
+<div id="frames"></div>
+
+<script>
+let frames = [];
+
+function extractFrames() {
+    const fileInput = document.getElementById("videoInput");
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const framesContainer = document.getElementById("frames");
+
+    frames = [];
+    framesContainer.innerHTML = "";
+
+    if (!fileInput.files[0]) {
+        alert("Please select a video first.");
+        return;
+    }
+
+    const fileURL = URL.createObjectURL(fileInput.files[0]);
+    video.src = fileURL;
+
+    video.onloadedmetadata = () => {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+
+        let currentTime = 0;
+        const frameRate = 1; // 1 frame per second
+
+        function captureFrame() {
+            if (currentTime > video.duration) {
+                alert("Frames extracted!");
+                return;
+            }
+
+            video.currentTime = currentTime;
+        }
+
+        video.onseeked = () => {
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imgData = canvas.toDataURL("image/png");
+            frames.push(imgData);
+
+            const img = document.createElement("img");
+            img.src = imgData;
+            img.className = "frame";
+            framesContainer.appendChild(img);
+
+            currentTime += frameRate;
+            captureFrame();
+        };
+
+        captureFrame();
+    };
+}
+
+function downloadFrames() {
+    if (frames.length === 0) {
+        alert("No frames to download.");
+        return;
+    }
+
+    frames.forEach((dataURL, index) => {
+        const a = document.createElement("a");
+        a.href = dataURL;
+        a.download = `frame_${index + 1}.png`;
+        a.click();
+    });
+}
+</script>
 
 </body>
 </html>
