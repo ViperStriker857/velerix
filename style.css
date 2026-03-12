@@ -1,0 +1,6 @@
+corpo {
+margine: 0;
+famiglia di caratteri: Arial, sans-serif;
+sfondo: gradiente lineare (45 gradi, #ff0000, #ff8800, #00ffcc, #0066ff);
+dimensione sfondo: 400% 400%;
+animazione: bgMove 10 s infinito
